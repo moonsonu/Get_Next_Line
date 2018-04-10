@@ -5,61 +5,59 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: ksonu <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2018/04/02 22:46:45 by ksonu             #+#    #+#             */
-/*   Updated: 2018/04/04 00:39:51 by ksonu            ###   ########.fr       */
+/*   Created: 2018/04/08 19:06:48 by ksonu             #+#    #+#             */
+/*   Updated: 2018/04/09 21:47:44 by ksonu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-int		gnl_line(const int fd, char **data, char **line)
+int		print_line(const int fd, char **str, char **line)
 {
+	char	*ptr;
 	char	*tmp;
-	int		i;
 
-	i = 0;
-	while (data[fd][i] != '\n' && data[fd][i] != '\0')
-		i++;
-	if (data[fd][i] == '\n')
+	if ((ptr = ft_strchr(str[fd], '\n')))
 	{
-		*line = ft_strsub(data[fd], 0, i);
-		tmp = ft_strdup(data[fd] + i + 1);
-		ft_strdel(&data[fd]);
-		data[fd] = tmp;
-		if (data[fd][0] == '\0')
-			ft_strdel(&data[fd]);
+		*ptr = '\0';
+		*line = ft_strdup(str[fd]);
+		tmp = ft_strdup(ptr + 1);
+		ft_strdel(&str[fd]);
+		str[fd] = tmp;
+		return (1);
 	}
-	else if (data[fd][i] == '\0')
+	else if (*str[fd])
 	{
-		*line = ft_strdup(data[fd]);
-		ft_strdel(&data[fd]);
+		*line = ft_strdup(str[fd]);
+		ft_strdel(&str[fd]);
+		return (1);
 	}
-	return (1);
+	return (0);
 }
 
 int		get_next_line(const int fd, char **line)
 {
-	char			buff[BUFF_SIZE + 1];
-	static char		*data[1023];
+	char			buf[BUFF_SIZE + 1];
+	static char		*str[1023];
 	char			*tmp;
-	int				f;
+	int				r;
 
 	if (fd < 0 || BUFF_SIZE < 1 || line == NULL)
 		return (-1);
-	while ((f = read(fd, buff, BUFF_SIZE)) > 0)
+	while ((r = read(fd, buf, BUFF_SIZE)) > 0)
 	{
-		buff[f] = '\0';
-		if (data[fd] == NULL)
-			data[fd] = ft_strnew(1);
-		tmp = ft_strjoin(data[fd], buff);
-		ft_strdel(&data[fd]);
-		data[fd] = tmp;
-		if (ft_strchr(buff, '\n'))
+		buf[r] = '\0';
+		if (str[fd] == NULL)
+			str[fd] = ft_strnew(1);
+		tmp = ft_strjoin(str[fd], buf);
+		ft_strdel(&str[fd]);
+		str[fd] = tmp;
+		if (ft_strchr(buf, '\n'))
 			break ;
 	}
-	if (f < 0)
+	if (r < 0)
 		return (-1);
-	else if (f == 0 && data[fd] == NULL)
+	else if (r == 0 && str[fd] == NULL)
 		return (0);
-	return (gnl_line(fd, data, line));
+	return (print_line(fd, str, line));
 }
